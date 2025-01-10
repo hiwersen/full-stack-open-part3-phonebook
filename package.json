@@ -1,0 +1,29 @@
+{
+  "name": "phonebook",
+  "version": "1.0.0",
+  "description": "full-stack-open-part3",
+  "homepage": "https://github.com/hiwersen/full-stack-open-part3-phonebook#readme",
+  "bugs": {
+    "url": "https://github.com/hiwersen/full-stack-open-part3-phonebook/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hiwersen/full-stack-open-part3-phonebook.git"
+  },
+  "license": "MIT",
+  "author": "Hiwersen Angelo",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
