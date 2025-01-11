@@ -60,20 +60,32 @@ app.post('/api/persons', (request, response) => {
   const { body: { name, number } } = request
 
   if (!request.headers['content-type']) {
-    return response.status(400).end()
-  } 
+    return response
+      .status(400)
+      .json({ message: 'malformed header' })
+  }
 
   if (!name) {
-    response.status(400).json({ message: 'name missing' })
+    response
+      .status(400)
+      .json({ message: 'name missing' })
+
+  } else if (persons.some(p => p.name === name)) {
+    response
+      .status(400)
+      .json({ message: 'name must be unique' })
+
   } else if (!number) {
-    response.status(400).json({ message: 'number missing' })
+    response
+      .status(400)
+      .json({ message: 'number missing' })
+
   } else {
     const id = Math.ceil(Math.random() * (2**53 - 1))
     const person = { id, name, number }
     persons = persons.concat(person)
     response.json(person)
   }  
-
 })
 
 const PORT = 3001
