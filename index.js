@@ -28,7 +28,28 @@ let persons = [
 
 app.use(express.json())
 
-app.use(morgan('tiny'))
+// :method :url :status :res[content-length] - :response-time ms
+app.use(morgan('tiny', {
+  skip: function (req, res) { return req.method === 'POST' }
+}))
+
+morgan.token('data', function (req, res) { return JSON.stringify(req.body) })
+
+// :method :url :status :res[content-length] - :response-time ms :data
+const customLogger = morgan(function (tokens, req, res) {
+  return [
+    tokens.method(req, res),
+    tokens.url(req, res),
+    tokens.status(req, res),
+    tokens.res(req, res, 'content-length'), '-',
+    tokens['response-time'](req, res), 'ms',
+    tokens['data'](req, res)
+  ].join(' ')
+}, {
+  skip: function (req, res) { return req.method !== 'POST' }
+})
+
+app.use(customLogger)
 
 app.get('/api/persons', (request, response) => {
     response.json(persons)
