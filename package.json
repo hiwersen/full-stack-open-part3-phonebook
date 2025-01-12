@@ -20,7 +20,7 @@
     "dev": "nodemon index.js",
     "build:ui": "rm -rf dist && cd ../../part2/phonebook && npm run build && cp -r dist ../../part3/full-stack-open-part3-phonebook",
     "deploy": "fly deploy",
-    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push && npm run deploy",    
+    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push && git log --oneline && npm run deploy && fly scale show",    
     "logs:prod": "fly logs"
   },
   "dependencies": {
