@@ -1,5 +1,6 @@
 const express = require('express')
 const morgan = require('morgan')
+const cors = require('cors')
 
 const app = express()
 
@@ -27,6 +28,7 @@ let persons = [
 ]
 
 app.use(express.json())
+app.use(cors({ origin: 'http://localhost:5173' })) // !You may need to change this
 
 // :method :url :status :res[content-length] - :response-time ms
 app.use(morgan('tiny', {
@@ -51,16 +53,16 @@ const customLogger = morgan(function (tokens, req, res) {
 
 app.use(customLogger)
 
-app.get('/api/persons', (request, response) => {
-    response.json(persons)
-})
-
 app.get('/info', (request, response) => {
   const html = `
   <p>Phonebook has info for ${persons.length} people</p>
   <p>${Date()}</p>`
 
   response.send(html)
+})
+
+app.get('/api/persons', (request, response) => {
+    response.json(persons)
 })
 
 app.get('/api/persons/:id', (request, response) => {
@@ -105,14 +107,14 @@ app.post('/api/persons', (request, response) => {
       .json({ message: 'number missing' })
 
   } else {
-    const id = Math.ceil(Math.random() * (2**53 - 1))
+    const id = String(Math.ceil(Math.random() * (2**53 - 1)))
     const person = { id, name, number }
     persons = persons.concat(person)
     response.json(person)
   }  
 })
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 
 const server = app.listen(PORT, () => {
     console.log('Server running on port:', server.address().port);
