@@ -1,0 +1,25 @@
+# fly.toml app configuration file generated for full-stack-open-part3-phonebook-weathered-silence-8650 on 2025-01-12T16:22:37Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'full-stack-open-part3-phonebook-weathered-silence-8650'
+primary_region = 'lhr'
+
+[build]
+
+[env]
+  PORT = "3000" # add this
+
+[http_service]
+  internal_port = 3000 # ensure that this is same as PORT
+  force_https = true
+  auto_stop_machines = true # default value is 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1

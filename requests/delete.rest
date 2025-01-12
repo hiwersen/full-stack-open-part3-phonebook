@@ -1,1 +1,1 @@
-DELETE http://localhost:3001/api/persons/7040604433263865
+DELETE https://full-stack-open-part3-phonebook-weathered-silence-8650.fly.dev/api/persons/2

@@ -1,1 +1,8 @@
-GET http://localhost:3001/api/persons
+GET https://full-stack-open-part3-phonebook-weathered-silence-8650.fly.dev/api/persons
+
+###
+GET https://full-stack-open-part3-phonebook-weathered-silence-8650.fly.dev/api/persons/1
+
+
+###
+GET https://full-stack-open-part3-phonebook-weathered-silence-8650.fly.dev/info
