@@ -30,6 +30,7 @@ let persons = [
 
 app.use(express.json())
 app.use(cors({ origin: 'http://localhost:5173' })) // !You may need to change this
+app.use(express.static('dist'))
 
 // :method :url :status :res[content-length] - :response-time ms
 app.use(morgan('tiny', {
