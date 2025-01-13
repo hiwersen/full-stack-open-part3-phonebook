@@ -18,9 +18,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "build:ui": "rm -rf dist && cd ../../part2/phonebook && npm run build && cp -r dist ../../part3/full-stack-open-part3-phonebook",
+    "build:ui": "./scripts/build-ui.sh",
     "deploy": "fly deploy",
-    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push && git log --oneline && npm run deploy && fly scale show",    
+    "deploy:full": "./scripts/deploy-full.sh",    
     "logs:prod": "fly logs"
   },
   "dependencies": {
