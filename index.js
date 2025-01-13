@@ -29,7 +29,7 @@ let persons = [
 ]
 
 app.use(express.json())
-app.use(cors({ origin: 'http://localhost:5173' })) // !You may need to change this
+app.use(cors({ origin: 'http://localhost:5173' })) // !Not required when you have a proxy set in the frontend vite.config.js
 app.use(express.static('dist'))
 
 // :method :url :status :res[content-length] - :response-time ms
