@@ -56,15 +56,15 @@ get_commit_message() {
 }
 
 commit() {
-    staging_files="$1"
-    commit_message=$2 # !Needs fix
+    staging_files=$1 # !Needs fix
+    commit_message="$2"
     git add .
     git commit -m "$commit_message"
     git show --stat HEAD
     git status
 }
 
-
+########################################################################
 step1="re/create production build of the frontend"
 confirm "$step1"
 
@@ -72,6 +72,7 @@ if [ "$confirm" != "y" ]; then
     abort 0 "$step1"
 fi
 
+########################################################################
 step2="save backend before production build"
 confirm "$step2"
 
@@ -81,19 +82,27 @@ fi
 
 staging_files=$(get_staging_files)
 commit_message=$(get_commit_message "$step2")
-
 commit "$staging_files" "$commit_message"
 
-exit 0
+########################################################################
+step3="save frontend before production build"
+confirm "$step3"
 
+if [ "$confirm" != "y" ]; then
+    abort 0 "$step3"
+fi
 
-echo "Re/creating production build of the frontend..."
 rm -rf dist
 cd ../../part2/phonebook
+
+staging_files=$(get_staging_files)
+commit_message=$(get_commit_message "$step3")
+commit "$staging_files" "$commit_message"
 
 # --- Handle errors during production build ---
 if ! npm run build; then
     echo "Error during production build. Reverting changes..."
+    git restore .
     cd ../../part3/full-stack-open-part3-phonebook
     git restore .
     exit 1 # error
@@ -102,6 +111,8 @@ fi
 cp -r dist ../../part3/full-stack-open-part3-phonebook
 cd ../../part3/full-stack-open-part3-phonebook
 
+exit 0
+########################################################################
 # 2. Commit the changes
 
 git add dist # Stage the newly created files so Git can revert them if user aborts

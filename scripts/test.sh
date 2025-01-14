@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 enter() {
     local prompt="$1"
@@ -44,8 +45,24 @@ get_staging_files() {
     echo "$stating_files"
 }
 
+get_commit_message() {
+    prompt="commit message"
+    default="$1"
+    commit_message=$( enter "$prompt" "$default")
+    confirm "$prompt" "$commit_message"
+    commit_message=$(set_value "$prompt" "$default" "$commit_message")
 
+    echo "$commit_message"
+}
 
+commit() {
+    staging_files=$1 # !Needs fix
+    commit_message="$2"
+    git add .
+    git commit -m "$commit_message"
+    git show --stat HEAD
+    git status
+}
 
 
 
