@@ -19,8 +19,8 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "build:ui": "./scripts/build-ui.sh",
-    "deploy": "fly deploy",
-    "deploy:full": "./scripts/deploy-full.sh",    
+    "deploy": "./scripts/deploy.sh",
+    "deploy:full": "npm run build:ui && npm run deploy",   
     "logs:prod": "fly logs"
   },
   "dependencies": {

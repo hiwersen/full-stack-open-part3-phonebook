@@ -35,6 +35,16 @@ abort() {
     exit "$status"
 }
 
+get_staging_files() {
+    prompt="staging files"
+    default="."
+    stating_files=$( enter "$prompt" "$default")
+    confirm "$prompt" "$stating_files"
+    staging_files=$(set_value "$prompt" "$default" "$staging_files")
+
+    echo "$stating_files"
+}
+
 get_commit_message() {
     prompt="commit message"
     default="$1"
@@ -45,6 +55,14 @@ get_commit_message() {
     echo "$commit_message"
 }
 
+commit() {
+    staging_files="$1"
+    commit_message="$2" # !Need fix
+    git add "$staging_files"
+    git commit -m "$commit_message"
+    git show --stat HEAD
+    git status
+}
 
 
 step1="re/create production build of the frontend"
@@ -61,13 +79,10 @@ if [ "$confirm" != "y" ]; then
     abort 0 "$step2"
 fi
 
+staging_files=$(get_staging_files)
 commit_message=$(get_commit_message "$step2")
 
-git add .
-git commit -m "$commit_message"
-git show --stat HEAD
-git status
-
+commit "$staging_files" "$commit_message"
 
 exit 0
 

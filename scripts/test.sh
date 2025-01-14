@@ -45,17 +45,6 @@ get_staging_files() {
 }
 
 
-commit() {
-    staging_files="$1"
-    commit_message="$2"
-
-    git add "$staging_files"
-    git commit -m "$commit_message"
-
-    git show --stat HEAD
-    git status
-}
-
 
 
 
