@@ -58,7 +58,7 @@ get_commit_message() {
 commit() {
     staging_files="$1"
     commit_message="$2" # !Need fix
-    git add "$staging_files"
+    git add .
     git commit -m "$commit_message"
     git show --stat HEAD
     git status
