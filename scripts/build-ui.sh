@@ -56,7 +56,7 @@ get_commit_message() {
 }
 
 commit() {
-    staging_files="$1"
+    staging_files=$1
     commit_message="$2"
     git add "$staging_files"
     git commit -m "$commit_message"
