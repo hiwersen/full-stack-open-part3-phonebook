@@ -101,12 +101,15 @@ commit "$staging_files" "$commit_message"
 
 # --- Handle errors during production build ---
 if ! npm run build; then
-    echo "Error during production build. Reverting changes..."
     git restore .
     cd ../../part3/full-stack-open-part3-phonebook
     git restore .
-    exit 1 # error
+    abort 1 "$step1" # build UI fully cancelled
 fi
+
+# --- Push committed changes to the remote repository ---
+
+
 
 cp -r dist ../../part3/full-stack-open-part3-phonebook
 cd ../../part3/full-stack-open-part3-phonebook
@@ -157,17 +160,9 @@ git show --stat HEAD
 
 # 3. Push committed changes to the remote repository
 
-branch=$(git branch --show-current)
-remote=$(git config branch."$branch".remote)
 
-getRemote() {
-    read -p "Enter remote name [origin]: " remote
-    remote=${remote:-origin}
-}
 
-confirmRemote() {
-    read -p "Confirm remote name [$remote]? (y/N) " confirm
-}
+
 
 if [ -z "$remote" ]; then
     echo "No upstream is configured for branch: $branch"

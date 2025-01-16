@@ -1,4 +1,4 @@
-POST https://full-stack-open-part3-phonebook-weathered-silence-8650.fly.dev/api/persons
+POST http://localhost:3001/api/persons
 Content-Type: application/json
 
 {

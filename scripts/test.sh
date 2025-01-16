@@ -36,9 +36,9 @@ abort() {
 }
 
 get_staging_files() {
-    prompt="staging files"
-    default="."
-    stating_files=$( enter "$prompt" "$default")
+    local prompt="staging files"
+    local default="."
+    local stating_files=$( enter "$prompt" "$default")
     confirm "$prompt" "$stating_files"
     staging_files=$(set_value "$prompt" "$default" "$staging_files")
 
@@ -46,9 +46,9 @@ get_staging_files() {
 }
 
 get_commit_message() {
-    prompt="commit message"
-    default="$1"
-    commit_message=$( enter "$prompt" "$default")
+    local prompt="commit message"
+    local default="$1"
+    local commit_message=$( enter "$prompt" "$default")
     confirm "$prompt" "$commit_message"
     commit_message=$(set_value "$prompt" "$default" "$commit_message")
 
@@ -56,18 +56,43 @@ get_commit_message() {
 }
 
 commit() {
-    staging_files=$1 # !Needs fix
-    commit_message="$2"
+    local staging_files=$1 # !Needs fix
+    local commit_message="$2"
     git add .
     git commit -m "$commit_message"
     git show --stat HEAD
     git status
 }
 
+confirm_branch
 
+get_branch
 
+checkout_branch
 
+push() {
+    local branch=$(git branch --show-current)
+    local remote=$(git config branch."$branch".remote)
 
+    echo "$remote"
 
+    if [ -z "$remote" ]; then
+        # send output directly to current terminal /dev/tty
+        echo "No upstream is configured for this branch: $branch" > /dev/tty
+        local prompt="remote name"
+        local default="origin"
+        remote=$( enter "$prompt" "$default" )
+        confirm "$prompt" "$remote"
+        remote=$(set_value "$prompt" "$default" "$remote")
+
+        # send output directly to current terminal /dev/tty
+        echo "Setting upstream to $remote/$branch and pushing..." > /dev/tty
+        #git push --set-upstream-to "$remote/$branch"
+    #else
+        #git push
+    fi
+
+    #git status
+}
 
 
