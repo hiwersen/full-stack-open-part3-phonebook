@@ -1,6 +1,8 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+const Person = require('./models/person')
 
 const app = express()
 
@@ -64,18 +66,24 @@ app.get('/info', (request, response) => {
 })
 
 app.get('/api/persons', (request, response) => {
-    response.json(persons)
+    Person
+      .find({})
+      .then(persons => {
+        response.json(persons)
+      })
+      .catch(error => 
+        response.status(404).end())
 })
 
 app.get('/api/persons/:id', (request, response) => {
-  const id = request.params.id
-  const person = persons.find(p => p.id === id)
-
-  if (person) {
-    response.json(person)
-  } else {
-    response.status(404).end()
-  }
+  Person
+    .findById(request.params.id)
+    .then(person => {
+      console.log(person)
+      response.json(person)
+    })
+    .catch(error => 
+      response.status(404).end())
 })
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -90,36 +98,40 @@ app.post('/api/persons', (request, response) => {
   if (!request.headers['content-type']) {
     return response
       .status(400)
-      .json({ message: 'malformed header' })
+      .json({ error: 'malformed request' })
   }
 
   if (!name) {
     response
       .status(400)
-      .json({ message: 'name missing' })
+      .json({ error: 'name missing' })
 
   } else if (persons.some(p => p.name === name)) {
     response
       .status(400)
-      .json({ message: 'name must be unique' })
+      .json({ error: 'name must be unique' })
 
   } else if (!number) {
     response
       .status(400)
-      .json({ message: 'number missing' })
+      .json({ error: 'number missing' })
 
   } else {
-    const id = String(Math.ceil(Math.random() * (2**53 - 1)))
-    const person = { id, name, number }
-    persons = persons.concat(person)
-    response.json(person)
+    // const id = String(Math.ceil(Math.random() * (2**53 - 1)))
+    new Person({ name, number })
+      .save()
+      .then(person => {
+        console.log(person)
+        response.status(201).json(person)
+      })
+      .catch(error =>
+        response.status(500).json({ error: error.message }))
   }  
 })
 
 const PORT = process.env.PORT || 3001
 
 const server = app.listen(PORT, () => {
-    console.log('Server running on port:', server.address().port);
+    console.log('Server running on port:', PORT);
     
 })
-
