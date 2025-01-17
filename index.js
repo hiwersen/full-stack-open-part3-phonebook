@@ -6,33 +6,10 @@ const Person = require('./models/person')
 
 const app = express()
 
-let persons = [
-    { 
-      "id": "1",
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": "2",
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": "3",
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": "4",
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-
-]
-
 app.use(express.json())
 app.use(cors({ origin: 'http://localhost:5173' })) // !Not required when you have a proxy set in the frontend vite.config.js
 app.use(express.static('dist'))
+
 
 // :method :url :status :res[content-length] - :response-time ms
 app.use(morgan('tiny', {
@@ -57,81 +34,137 @@ const customLogger = morgan(function (tokens, req, res) {
 
 app.use(customLogger)
 
-app.get('/info', (request, response) => {
-  const html = `
-  <p>Phonebook has info for ${persons.length} people</p>
-  <p>${Date()}</p>`
-
-  response.send(html)
+app.get('/info', (request, response, next) => {
+  Person
+    .find({})
+    .then(persons => {
+      if (persons) {
+        const html = `
+          <p>Phonebook has info for ${persons.length} people</p>
+          <p>${Date()}</p>`
+        response.send(html)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => next(error))
 })
 
-app.get('/api/persons', (request, response) => {
+app.get('/api/persons', (request, response, next) => {
     Person
       .find({})
       .then(persons => {
-        response.json(persons)
+        if (persons) {
+          response.json(persons)
+        } else {
+          response.status(404).end()
+        }
       })
-      .catch(error => 
-        response.status(404).end())
+      .catch(error => next(error))
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   Person
     .findById(request.params.id)
     .then(person => {
-      console.log(person)
-      response.json(person)
+      if (person) {
+        response.json(person)
+      } else {
+        response.status(404).end()
+      }
     })
-    .catch(error => 
-      response.status(404).end())
+    .catch(error => next(error))
 })
 
-app.delete('/api/persons/:id', (request, response) => {
-  const id = request.params.id
-  persons = persons.filter(p => p.id !== id)
-  response.status(204).end()
-})
-
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const { body: { name, number } } = request
+
+  console.log(request.body)
 
   if (!request.headers['content-type']) {
     return response
       .status(400)
-      .json({ error: 'malformed request' })
+      .json({ error: 'malformed header' })
   }
 
-  if (!name) {
-    response
-      .status(400)
-      .json({ error: 'name missing' })
+  Person
+    .find({})
+    .then(persons => {
+      if (persons) {
 
-  } else if (persons.some(p => p.name === name)) {
-    response
-      .status(400)
-      .json({ error: 'name must be unique' })
+        if (!name) {
+          response
+            .status(400)
+            .json({ error: 'name missing' })
+      
+        } else if (persons.some(p => p.name === name)) {
+          response
+            .status(400)
+            .json({ error: 'name must be unique' })
+      
+        } else if (!number) {
+          response
+            .status(400)
+            .json({ error: 'number missing' })
+      
+        } else {
+          new Person({ name, number })
+            .save()
+            .then(person => {
+              console.log(person)
+              response.status(201).json(person)
+            })
+            .catch(error =>
+              response.status(500).json({ error: error.message }))
+        }
 
-  } else if (!number) {
-    response
-      .status(400)
-      .json({ error: 'number missing' })
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => next(error))  
+})
 
-  } else {
-    // const id = String(Math.ceil(Math.random() * (2**53 - 1)))
-    new Person({ name, number })
-      .save()
-      .then(person => {
-        console.log(person)
-        response.status(201).json(person)
-      })
-      .catch(error =>
-        response.status(500).json({ error: error.message }))
-  }  
+app.delete('/api/persons/:id', (request, response, next) => {
+  Person
+    .findByIdAndDelete(request.params.id)
+    .then(() => response.status(204).end())
+    .catch(error => next(error))
+})
+
+app.put('/api/persons/:id', (request, response, next) => {
+  const { body: { name, number } } = request
+  const person = { name, number }
+  
+  Person
+    .findByIdAndUpdate(request.params.id, person, { new: true })
+    .then(updatedPerson => {
+      if (updatedPerson) {
+        response.json(updatedPerson)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => next(error))
+})
+
+app.use((request, response, next) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+  next()
+})
+
+app.use((error, request, response, next) => {
+  console.log(error.name, error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
+
+  next(error)
 })
 
 const PORT = process.env.PORT || 3001
 
 const server = app.listen(PORT, () => {
-    console.log('Server running on port:', PORT);
-    
+    console.log('Server running on port:', PORT)
 })
