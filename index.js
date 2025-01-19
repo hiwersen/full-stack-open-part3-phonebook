@@ -2,9 +2,12 @@ require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+const mongoose = require('mongoose')
 const Person = require('./models/person')
 
 const app = express()
+const PORT = process.env.PORT || 3001
+const URI = process.env.MONGODB_URI
 
 app.use(express.json())
 app.use(cors({ origin: 'http://localhost:5173' })) // !Not required when you have a proxy set in the frontend vite.config.js
@@ -78,51 +81,12 @@ app.get('/api/persons/:id', (request, response, next) => {
 
 app.post('/api/persons', (request, response, next) => {
   const { body: { name, number } } = request
-
-  console.log(request.body)
-
-  if (!request.headers['content-type']) {
-    return response
-      .status(400)
-      .json({ error: 'malformed header' })
-  }
-
-  Person
-    .find({})
-    .then(persons => {
-      if (persons) {
-
-        if (!name) {
-          response
-            .status(400)
-            .json({ error: 'name missing' })
-      
-        } else if (persons.some(p => p.name === name)) {
-          response
-            .status(400)
-            .json({ error: 'name must be unique' })
-      
-        } else if (!number) {
-          response
-            .status(400)
-            .json({ error: 'number missing' })
-      
-        } else {
-          new Person({ name, number })
-            .save()
-            .then(person => {
-              console.log(person)
-              response.status(201).json(person)
-            })
-            .catch(error =>
-              response.status(500).json({ error: error.message }))
-        }
-
-      } else {
-        response.status(404).end()
-      }
+  new Person({ name, number })
+    .save()
+    .then(result => {
+      response.status(201).json(result)
     })
-    .catch(error => next(error))  
+    .catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
@@ -134,13 +98,19 @@ app.delete('/api/persons/:id', (request, response, next) => {
 
 app.put('/api/persons/:id', (request, response, next) => {
   const { body: { name, number } } = request
-  const person = { name, number }
   
   Person
-    .findByIdAndUpdate(request.params.id, person, { new: true })
-    .then(updatedPerson => {
-      if (updatedPerson) {
-        response.json(updatedPerson)
+    .findByIdAndUpdate(
+      request.params.id, 
+      { name, number }, 
+      { 
+        new: true,
+        runValidators: true,
+        context: 'query'
+      })
+    .then(result => {
+      if (result) {
+        response.json(result)
       } else {
         response.status(404).end()
       }
@@ -154,17 +124,36 @@ app.use((request, response, next) => {
 })
 
 app.use((error, request, response, next) => {
-  console.log(error.name, error.message)
+  console.log('Error code:', error.code)
+  console.log('Error name:', error.name)
+  console.log('Error message', error.message)
+  console.log(error)
 
   if (error.name === 'CastError') {
-    return response.status(400).send({ error: 'malformatted id' })
+    return response.status(400).json({ error: 'malformatted id' })
+  }
+
+  if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  }
+
+  if (error.code === 11000) {
+    return response.status(400).json({ error: error.message })
   }
 
   next(error)
 })
 
-const PORT = process.env.PORT || 3001
+mongoose
+  .connect(URI)
+  .then(() => {
+    console.log('Connected to MongoDB:', mongoose.connection.name)
 
-const server = app.listen(PORT, () => {
-    console.log('Server running on port:', PORT)
-})
+    const server = app.listen(PORT, () => {
+      console.log('Server running on port:', PORT)
+  })
+
+  })
+  .catch(error => {
+    console.log('Error connecting to MongoDB:', error.message)
+  })

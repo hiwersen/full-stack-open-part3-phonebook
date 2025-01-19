@@ -1,3 +1,13 @@
+const mongoose = require('mongoose')
+const Person = require('../models/person.js')
+
+if (process.argv.length < 3) {
+  console.log('Provide MongoDB connection string as argument')
+  process.exit(1)
+}
+
+const URI = process.argv[2]
+
 let persons = [
     { 
       "id": "1",
@@ -22,12 +32,28 @@ let persons = [
 
 ]
 
-const Person = require('../models/person')
+mongoose
+  .connect(URI)
+  .then(() => {
+    console.log('Connected to database')
+    return Person
+      .insertMany(persons.map(({ name, number }) => 
+          ({ name, number })))
+  })
+  .then(result => {
+    console.log('Database populated')
+    if (result) {
+      result.forEach(document => console.log(document))
+    }
+    return mongoose.connection.close()
+  })
+  .then(() => {
+    console.log('Connection closed')
+  })
+  .catch(error => {
+    console.log('Error:', error.message)
 
-persons.forEach(({ name, number }) => {
-    
-   new Person({ name, number })
-        .save()
-        .then(person => console.log(person))
-        .catch(error => console.log(error))
-})
+    mongoose.connection.close()
+      .then(() => console.log('Connection closed'))
+      .catch(error => console.log('Error closing connection:', error.message))
+  })
