@@ -11,16 +11,16 @@ const PORT = process.env.PORT || 3001
 const URI = process.env.MONGODB_URI
 
 app.use(express.json())
-app.use(cors({ origin: 'http://localhost:5173' })) // !Not required when you have a proxy set in the frontend vite.config.js
+app.use(cors({ origin: 'http://localhost:5173' }))
 app.use(express.static('dist'))
 
 
 // :method :url :status :res[content-length] - :response-time ms
 app.use(morgan('tiny', {
-  skip: function (req, res) { return req.method === 'POST' }
+  skip: function (req) { return req.method === 'POST' }
 }))
 
-morgan.token('data', function (req, res) { return JSON.stringify(req.body) })
+morgan.token('data', function (req) { return JSON.stringify(req.body) })
 
 // :method :url :status :res[content-length] - :response-time ms :data
 const customLogger = morgan(function (tokens, req, res) {
@@ -33,12 +33,12 @@ const customLogger = morgan(function (tokens, req, res) {
     tokens['data'](req, res)
   ].join(' ')
 }, {
-  skip: function (req, res) { return req.method !== 'POST' }
+  skip: function (req) { return req.method !== 'POST' }
 })
 
 app.use(customLogger)
 
-app.get('/info', (request, response, next) => {
+app.get('/info', (_, response, next) => {
   Person
     .find({})
     .then(persons => {
@@ -54,17 +54,17 @@ app.get('/info', (request, response, next) => {
     .catch(error => next(error))
 })
 
-app.get('/api/persons', (request, response, next) => {
-    Person
-      .find({})
-      .then(persons => {
-        if (persons) {
-          response.json(persons)
-        } else {
-          response.status(404).end()
-        }
-      })
-      .catch(error => next(error))
+app.get('/api/persons', (_, response, next) => {
+  Person
+    .find({})
+    .then(persons => {
+      if (persons) {
+        response.json(persons)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => next(error))
 })
 
 app.get('/api/persons/:id', (request, response, next) => {
@@ -99,12 +99,12 @@ app.delete('/api/persons/:id', (request, response, next) => {
 
 app.put('/api/persons/:id', (request, response, next) => {
   const { body: { name, number } } = request
-  
+
   Person
     .findByIdAndUpdate(
-      request.params.id, 
-      { name, number }, 
-      { 
+      request.params.id,
+      { name, number },
+      {
         new: true,
         runValidators: true,
         context: 'query'
@@ -119,12 +119,12 @@ app.put('/api/persons/:id', (request, response, next) => {
     .catch(error => next(error))
 })
 
-app.use((request, response, next) => {
+app.use((_, response, next) => {
   response.status(404).send({ error: 'unknown endpoint' })
   next()
 })
 
-app.use((error, request, response, next) => {
+app.use((error, _, response, next) => {
   console.log('Error code:', error.code)
   console.log('Error name:', error.name)
   console.log('Error message', error.message)
@@ -150,9 +150,9 @@ mongoose
   .then(() => {
     console.log('Connected to MongoDB:', mongoose.connection.name)
 
-    const server = app.listen(PORT, () => {
+    app.listen(PORT, () => {
       console.log('Server running on port:', PORT)
-  })
+    })
 
   })
   .catch(error => {

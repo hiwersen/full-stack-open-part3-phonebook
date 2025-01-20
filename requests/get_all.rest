@@ -1,4 +1,14 @@
+###
+GET http://localhost:3001/info
+
+###
 GET http://localhost:3001/api/persons
 
 ###
-GET http://localhost:3001/api/persons/678a880425f38b3a68f51d6e
+GET http://localhost:3001/api/persons/678e7cf12aed2c2a9314d392
+
+###
+GET https://full-stack-open-part3-phonebook-51o5.onrender.com/api/persons/
+
+###
+GET https://full-stack-open-part3-phonebook-51o5.onrender.com/api/persons/678e6f9612d59580f01eef18
